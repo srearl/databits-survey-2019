@@ -1,0 +1,233 @@
+---
+title: "databits-survey-2019-results"
+date: '`r format(Sys.Date(), "%Y-%m-%d")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(googlesheets)
+library(kableExtra)
+```
+
+```{r, include=FALSE}
+# surveyResultsToken <- gs_url('https://docs.google.com/spreadsheets/d/1UU0FtgoN1tSjY1qaXcWSEdcsVRRCCFNZ5huDSTLuKag/edit?usp=sharing')
+# surveyResults <- gs_read(surveyResultsToken, ws = 1)
+# write_csv(surveyResults, "surveyResults.csv")
+surveyResults <- read_csv('surveyResults.csv')
+colnames(surveyResults)[2] <- "recentlyRead"
+colnames(surveyResults)[3] <- "increaseInterest"
+colnames(surveyResults)[4] <- "topicsOfInterest"
+colnames(surveyResults)[5] <- "interestToWrite"
+colnames(surveyResults)[6] <- "increaseContribution"
+colnames(surveyResults)[7] <- "optimalLength"
+colnames(surveyResults)[8] <- "format"
+colnames(surveyResults)[9] <- "notification"
+colnames(surveyResults)[10] <- "shareOutside"
+colnames(surveyResults)[11] <- "communityValue"
+colnames(surveyResults)[12] <- "addtionalThoughts"
+```
+
+<br>
+<hr>
+#### Have you read the two most recent Databits issues (spring 2018 and summer 2019)?
+
+```{r recentlyRead, echo=FALSE}
+
+surveyResults %>% 
+  count(recentlyRead) %>%
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### If reading Databits has not interested you, what might increase your interest?
+
+```{r increaseInterest, echo=FALSE}
+
+surveyResults %>% 
+  select(increaseInterest) %>% 
+  filter(!is.na(increaseInterest)) %>% 
+  mutate(response = "-") %>%
+  select(response, increaseInterest) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### What topics do you like to read about in Databits, select all that are appropriate?
+
+```{r topicsOfInterest, echo=FALSE}
+
+surveyResults %>% 
+  select(topicsOfInterest) %>% 
+  mutate(topicsOfInterest = strsplit(topicsOfInterest, ",")) %>% 
+  unnest(topicsOfInterest) %>% 
+  filter(
+    grepl("SiteBytes|Personnel|International|Recaps|Recommendations|op-eds|analyses|history", topicsOfInterest, ignore.case = T)
+  ) %>% 
+  mutate(
+    topicsOfInterest = str_trim(topicsOfInterest, side = c("both")),
+    topicsOfInterest = case_when(
+      grepl("recaps from meet", topicsOfInterest, ignore.case = T) ~ "Recaps from meetings, working groups, and Slack conversations",
+      grepl("op-eds", topicsOfInterest, ignore.case = T) ~ "Op-eds, reflections, and commentaries",
+      grepl("cool graphs", topicsOfInterest, ignore.case = T) ~ "Analyses of interest",
+      grepl("Reading recommendations", topicsOfInterest, ignore.case = T) ~ "Reading recommendations",
+      TRUE ~ topicsOfInterest
+    )
+  ) %>% 
+  count(topicsOfInterest) %>% 
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### What topics might you be interested to write about in Databits, either for an IM or broader audience?
+
+```{r interestToWrite, echo=FALSE}
+
+surveyResults %>% 
+  select(interestToWrite) %>% 
+  mutate(interestToWrite = strsplit(interestToWrite, ",")) %>% 
+  unnest(interestToWrite) %>% 
+  filter(
+    grepl("SiteBytes|Personnel|International|Recaps|Recommendations|op-eds|analyses|history", interestToWrite, ignore.case = T)
+  ) %>% 
+  mutate(
+    interestToWrite = str_trim(interestToWrite, side = c("both")),
+    interestToWrite = case_when(
+      grepl("recaps from meet", interestToWrite, ignore.case = T) ~ "Recaps from meetings, working groups, and Slack conversations",
+      grepl("op-eds", interestToWrite, ignore.case = T) ~ "Op-eds, reflections, and commentaries",
+      grepl("cool graphs", interestToWrite, ignore.case = T) ~ "Analyses of interest",
+      grepl("Reading recommendations", interestToWrite, ignore.case = T) ~ "Reading recommendations",
+      TRUE ~ interestToWrite
+    )
+  ) %>% 
+  count(interestToWrite) %>% 
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### If you are not interested to contribute a story, can you envision any changes that would make you more likely to contribute?
+
+```{r increaseContribution, echo=FALSE}
+
+surveyResults %>% 
+  select(increaseContribution) %>% 
+  filter(!is.na(increaseContribution)) %>% 
+  mutate(response = "-") %>%
+  select(response, increaseContribution) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+
+<hr>
+#### What is an optimal length for Databits stories, both in terms of the length of story you would like to read and to write?
+
+```{r optimalLength, echo=FALSE}
+
+surveyResults %>% 
+  select(optimalLength) %>% 
+  filter(!is.na(optimalLength)) %>% 
+  mutate(optimalLength = strsplit(optimalLength, ",")) %>% 
+  unnest(optimalLength) %>% 
+  mutate(optimalLength = str_trim(optimalLength, side = c("both"))) %>% 
+  count(optimalLength) %>%
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### There has been lively discussion about the format of Databits (i.e., PDF or a blog model). For the editors, it comes down to continuous versus discrete publishing models. Would you be more likely to read Databits articles if they are distributed first:
+
+```{r format, echo=FALSE}
+
+surveyResults %>% 
+  select(format) %>% 
+  filter(!is.na(format)) %>% 
+  count(format) %>%
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### How would you like to hear about new Databits content if it were published continuously (as in a blog)?
+
+```{r notification, echo=FALSE}
+
+surveyResults %>% 
+  select(notification) %>% 
+  mutate(notification = strsplit(notification , ",")) %>% 
+  unnest(notification) %>% 
+  mutate(notification = str_trim(notification , side = c("both"))) %>% 
+  count(notification) %>% 
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+##### Do you share Databits content outside of the IM community?
+
+```{r shareOutside, echo=FALSE}
+
+surveyResults %>% 
+  select(shareOutside) %>% 
+  filter(!is.na(shareOutside)) %>% 
+  count(shareOutside) %>%
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### What do you think is Databits’ value to the IM community?
+
+```{r communityValue, echo=FALSE}
+
+surveyResults %>% 
+  select(communityValue) %>% 
+  filter(!is.na(communityValue)) %>% 
+  mutate(communityValue = strsplit(communityValue, ",")) %>% 
+  unnest(communityValue) %>% 
+  filter(
+    grepl("overview|ideas|shared|sandbox|platform|sharable", communityValue, ignore.case = T)
+  ) %>% 
+  mutate(
+    communityValue = str_trim(communityValue, side = c("both")),
+    communityValue = case_when(
+      grepl("sharable", communityValue, ignore.case = T) ~ "provides sharable, citable record of IM work for disseminating to wider community",
+      grepl("sandbox", communityValue, ignore.case = T) ~ "provides a sandbox for new projects, possibly for subsequent publications",
+      TRUE ~ communityValue
+    )
+  ) %>% 
+  count(communityValue) %>% 
+  arrange(desc(n)) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
+
+<hr>
+#### Please provide any additional thoughts that you would like to share, and note that we are receptive to strong, even inflammatory, opinions so please feel free to comment openly.
+
+```{r addtionalThoughts, echo=FALSE}
+
+surveyResults %>% 
+  select(addtionalThoughts) %>% 
+  filter(!is.na(addtionalThoughts)) %>% 
+  mutate(response = "-") %>%
+  select(response, addtionalThoughts) %>% 
+  kableExtra::kable() %>% 
+  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = F, position = "left")
+```
